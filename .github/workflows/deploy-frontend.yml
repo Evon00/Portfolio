@@ -1,0 +1,54 @@
+name: Deploy Frontend to EC2
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate build (CI check)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: |
+          npm ci
+          npm run build
+        working-directory: .
+
+      - name: Copy frontend to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "."
+          target: "${{ secrets.EC2_APP_PATH }}/frontend"
+          rm: true
+          strip_components: 0
+          exclude: |
+            .git/*
+            .github/*
+            node_modules/*
+            .next/*
+            *.log
+
+      - name: SSH: Build & restart frontend container
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd "${{ secrets.EC2_APP_PATH }}"
+            # Build only frontend image and bring up
+            docker compose build frontend
+            docker compose up -d frontend
+            # remove old images except latest
+            /bin/bash ./cleanup-images.sh
