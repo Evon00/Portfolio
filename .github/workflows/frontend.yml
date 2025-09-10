@@ -31,6 +31,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ${{ secrets.EC2_APP_PATH }}
-            docker compose pull frontend
-            docker compose up -d
+            docker-compose pull frontend
+            docker-compose up -d
             docker image prune -af
