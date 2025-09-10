@@ -13,14 +13,13 @@ jobs:
 
       - name: Create .env.local from Secret
         run: |
-          echo "${{ secrets.ENV_LOCAL }}" > ./frontend/.env.local
+          echo "${{ secrets.ENV_LOCAL }}" > ./.env.local
 
       - name: Log in to DockerHub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Build & Push Frontend Docker Image
         run: |
-          cd frontend
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
 
