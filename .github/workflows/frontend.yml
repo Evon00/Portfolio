@@ -36,6 +36,24 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ${{ secrets.EC2_APP_PATH }}
+            
+            echo "Stopping frontend service..."
+            docker-compose stop frontend
+            
+            echo "Removing old frontend container and image..."
+            docker-compose rm -f frontend
+            docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest || true
+            
+            echo "Pulling fresh frontend image..."
             docker-compose pull frontend
-            docker-compose up -d frontend nginx
-            docker image prune -af
+            
+            echo "Starting new frontend..."
+            docker-compose up -d frontend
+            
+            echo "Ensuring nginx is running..."
+            docker-compose up -d nginx
+            
+            echo "Cleaning up..."
+            docker image prune -f
+            
+            echo "Frontend deployment completed successfully"
