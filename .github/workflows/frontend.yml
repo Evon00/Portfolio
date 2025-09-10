@@ -3,8 +3,6 @@ name: Deploy Frontend
 on:
   push:
     branches: [ "main" ]
-    paths:
-      - 'frontend/**'
 
 jobs:
   deploy:
@@ -33,7 +31,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /project-root
+            cd ${{ secrets.EC2_APP_PATH }}
             docker compose pull frontend
             docker compose up -d
             docker image prune -af
